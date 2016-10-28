@@ -161,9 +161,9 @@ We refactor the `DataCollector` module in such a way that the API implementation
 At this moment, the `Viewer` references directly with the `Collector`. Sometimes you would like to loosen the coupling or switch between `Collector` implementations. Typically, you introduce a service interface class that represents the API and a service provider class that provides the interface implementation. 
 
 The decoupling of service interfaces and service providers proofed to be powerful in large software systems and is long supported in Java via the `ServiceLocator` class.
-Today, the `ServiceLocator` scans artifacts for META-INF/services resource entries in order to wire the interface to the provider. Java 9 allows you to use the declare the interfaces and providers instead of the META-INF/services file.
+Today, the `ServiceLocator` scans artifacts for META-INF/services resource entries in order to wire the interface to the provider. Java 9 allows you to use the `modele-info.java` to declare the interfaces and providers instead of the META-INF/services file.
 
-The `Collector` is in our case the service provider. We need to define a service interface and for sake of simplicity we will define it in the `DataCollector` module as well. The `Viewer` needs to reference to the new service interface and will have no direct knowledge of the `Collector`.
+The `Collector` is in our case the service provider. We need to define a service interface and for the sake of simplicity we will define it in the `DataCollector` module as well. The `Viewer` needs to reference to the new service interface and will have no direct knowledge of the `Collector`.
 
 1. Remove all dependencies under `Libaries` and `module-info.java` in both projects.
 2. Create an interface class `Collectable` in the `DataCollector` module in a separate api package.
@@ -213,8 +213,8 @@ module DataViewer {
 8. Change the `Viewer` in such a way that it presents the data from both providers.
 
 ## References
-http://openjdk.java.net/projects/jdk9/
-http://download.java.net/java/jdk9/docs/api/
+[](http://openjdk.java.net/projects/jdk9/)
+[](http://download.java.net/java/jdk9/docs/api/)
 
 ## FAQ
 ### How do I set JAVA_HOME?
