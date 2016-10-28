@@ -2,7 +2,8 @@
 During this hands-on we will introduce some of the highlights of Java 9. This document is intended to be self-explanatory, so you can simply work yourself from top to bottom. There is a FAQ section included at the end of the document in case you run into issues.
 
 I hope you enjoy this hands-on. Comments and improvements are always welcome!
-Prerequisites
+
+## Prerequisites
 Download and install the following items:
 - [Java 9 - EA](https://jdk9.java.net/download)
 - [Netbeans Nightly build](http://bits.netbeans.org/download/trunk/nightly/latest/)
@@ -132,11 +133,13 @@ We want to make a separate module from our `Collector`. The result of this exerc
    Be aware that the packages cannot be identical.
 3. Generate a `module-info.java` in the newly created application. You can do this via a right click on the `Source Packages` and then `new | Java Module Info`
 4. You need to export the package that contains the refactored `Collector` in order to make it available outside the `DataCollector` module. Please add an export statement in your `module-info.java`. The example below exports the  `org.nljug.jcp.java9.datacollector`.
-```java
+
+   ```java
 module DataCollector {
     exports org.nljug.jcp.hackathlon.java9.datacollector;
 }
 ```
+
 5. Go to the properties of your `DataViewer` project. Add under `Libraries | Modulepath` your data collector project.
 6. Generate a `module-info.java` in your `DataViewer` project.
 7. You need to import the `Collector` module. Please add add a *require* statement in your `module-info.java`. The example below requires the module `DataCollector`.
@@ -164,7 +167,8 @@ The `Collector` is in our case the service provider. We need to define a service
 1. Remove all dependencies under `Libaries` and `module-info.java` in both projects.
 2. Create an interface class `Collectable` in the `DataCollector` module in a separate api package.
 3. We need to change the implementation of the `Viewer` that is uses a provided implementation of `Collectable`. This is done via the `ServiceLoader` class. Here is an example implementation.
-```java
+
+   ```java
     public static void main(String[] args) {
         //Load the potential providers
         ServiceLoader<Collectable> loader = ServiceLoader.load(Collectable.class);
@@ -182,21 +186,26 @@ The `Collector` is in our case the service provider. We need to define a service
         dataProvider.collect().forEach(data -> out.println(data));
     }
 ```
+
 4. We need to expose this new interface outside the module. This is done via the *exports* statement as in the previous exercises. We also need to declare its actual implementation for the `ServiceLocator`. This is done via a *provides [service interface] with [service provider]* statement. Here is an example implementation of such a `module-info.java`.
-```java
+
+   ```java
 module DataCollector {
     exports org.nljug.jcp.hackathlon.java9.api;
     provides org.nljug.jcp.hackathlon.java9.api.Collectable with
  org.nljug.jcp.hackathlon.java9.collector.Collector;
 }
 ```
+
 5. The next step is to declare the requirement and use of this interface in the client module. The `DataViewer` module is the client module in our example. Here is an example of such declaration in the `module-info.java`.
-```java
+
+   ```java
 module DataViewer {
     requires DataCollector;
     uses org.nljug.jcp.hackathlon.java9.api.Collectable;
 }
 ```
+
 6. Wire the projects correctly in Netbeans under Properties | Libraries, clean the projects and run the `Viewer` to check if the program works again as expected. 
 7. Now, create a new module that implements the Collectable interface as well with a different set of data. 
 	Tip: Mind the package names.
