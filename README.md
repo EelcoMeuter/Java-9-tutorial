@@ -213,8 +213,8 @@ module DataViewer {
 8. Change the `Viewer` in such a way that it presents the data from both providers.
 
 ## References
-[http://openjdk.java.net/projects/jdk9/](http://openjdk.java.net/projects/jdk9/)
-[http://download.java.net/java/jdk9/docs/api/](http://download.java.net/java/jdk9/docs/api/)
+- [http://openjdk.java.net/projects/jdk9/](http://openjdk.java.net/projects/jdk9/)
+- [http://download.java.net/java/jdk9/docs/api/](http://download.java.net/java/jdk9/docs/api/)
 
 ## FAQ
 ### How do I set JAVA_HOME?
