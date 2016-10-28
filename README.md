@@ -120,7 +120,7 @@ Before we start with the technicalities of how this principle of module descript
 - Be backwards compatible as versioning is yet not supported.
 
 ### Exercise 1
-Let’s start to build an application that presents some immutable dummy data.  In order to do this you create one Java application with two classes: a `Collector` and a `Viewer.
+Let’s start to build an application that presents some immutable dummy data.  In order to do this you create one Java application with two classes: a `Collector` and a `Viewer`.
 
 The `Collector` returns an immutable collection and the `Viewer` prints the data.
 
