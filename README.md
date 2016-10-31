@@ -21,9 +21,15 @@ JShell accepts statements, variable, method, and class definitions, imports, and
 Let’s see how this works.
 ```shell-script
 jshell> int x = 8
+x ==> 8
+
 jshell> x * x
+$2 ==> 64
+
 //support for temporary variables
-jshell> printf(“the result of x * x = %d”, $2)
+jshell> printf("the result of x * x = %d", $2)
+the result of x * x = 64
+
 //view all the sources you typed
 jshell> /list -all
 ```
@@ -31,8 +37,13 @@ jshell> /list -all
 Typically you use a REPL for exploratory programming. This means that you may want to use pieces of code that are not yet defined. Here is an example:
 ```shell-script
 jshell> double circumference(double radius){return 2 * radius * PI;}
+|  created method circumference(double), however, it cannot be invoked until variable PI is declared
+
 jshell> double PI = 3.14
+PI ==> 3.14
+
 jshell> circumference(x)
+$6 ==> 50.24
 ```
 ## Control your process
 The API to control and managing operating-system processes is improved (JEP 102). This is useful as many enterprise applications and containers involve several Java virtual machines of which you would like to control.
@@ -69,12 +80,7 @@ public interface Awkward {
     static void main(String[] args) {
         out.println(SAY_HI);
 
-        Awkward awkward = new Awkward() {
-            @Override
-            public String respond() {
-                return "This is a legacy response";
-            }
-        };
+        Awkward awkward = () -> "This is a legacy response";
         out.println(awkward.respond());
         out.println(awkward.respond(8));
         out.println(awkward.respond(9));
@@ -85,7 +91,7 @@ public interface Awkward {
 *Tip*: A step by step guide of creating a Java application in Netbeans can be found in the FAQ section.
 
 ## HttpClient
-There is a shiny new HTTP client API that supports HTTP/2, websockets and can replace the HttpURLConnection API. The new HttpClient is a container that is immutable and created via a builder.  Here is an example of an asynchronous call.
+There is a shiny new HTTP client API that supports HTTP/2, websockets and can replace the `HttpURLConnection` API. The new `HttpClient` is a container that is immutable and created via a builder.  Here is an example of an asynchronous call.
 ```java
 public class Main {
 
@@ -108,15 +114,16 @@ public class Main {
     }
 }
 ```
+
 ## Modules
 Project Jigsaw envisions a modular system that provides reliable configuration and strong encapsulation. A module is defined as a named, self-describing collection of code and data. This collection is packaged in a modular jar file. 
 
 A modular jar file is recognized on the compiled module descriptor: the `module-info.java`. This file is by convention located at the root of your collection of code and data. Another convention is that the name of the module is identical to the name of the jar.  The `module-info.java` contains contains information about the APIs the jar exposes and requires.
 
-Before we start with the technicalities of how this principle of module descriptors works, I would like to emphasise some opinionated architectural  aspects:
+Before we start with the technicalities of how this principle of module descriptors works, I would like to emphasise some opinionated architectural aspects:
 - Apply the SOLID principles. Always.
 - Package by functionality, never by layer. If your code base still embraces the idea that you have a presentation, business, data and model layer, then refactor/regroup your code in such a way that it clearly represents the intended functionality.
-- Code duplication across jars isn’t necessary bad. 
+- Code duplication across jars isn’t necessarily bad. 
 - Be backwards compatible as versioning is yet not supported.
 
 ### Exercise 1
@@ -124,7 +131,7 @@ Let’s start to build an application that presents some immutable dummy data.  
 
 The `Collector` returns an immutable collection and the `Viewer` prints the data.
 
-   *Tip*: Java 9 now supports simplified immutable collections via Map | List | Set.of( “a” ,”b” , “c” ). 
+   *Tip*: Java 9 now supports simplified immutable collections via `Map` | `List` | `Set.of( "a" ,"b" , "c" )`. 
 
 ### Exercise 2
 We want to make a separate module from our `Collector`. The result of this exercise will be two projects: the `DataViewer` that contains the `Viewer` and the `DataCollector` that contains the `Collector`.  Let’s do this step by step.
@@ -136,15 +143,22 @@ We want to make a separate module from our `Collector`. The result of this exerc
 4. You need to export the package that contains the refactored `Collector` in order to make it available outside the `DataCollector` module. Please add an export statement in your `module-info.java`. The example below exports the  `org.nljug.jcp.java9.datacollector`.
 
    ```java
-module DataCollector {
-    exports org.nljug.jcp.hackathlon.java9.datacollector;
-}
-```
+   module DataCollector {
+       exports org.nljug.jcp.java9.datacollector;
+   }
+   ```
 
 5. Go to the properties of your `DataViewer` project. Add under `Libraries | Modulepath` your data collector project.
 6. Generate a `module-info.java` in your `DataViewer` project.
-7. You need to import the `Collector` module. Please add add a *require* statement in your `module-info.java`. The example below requires the module `DataCollector`.
-8. Clean and run your DataViewer project.
+7. You need to import the `DataCollector` module. Please add a *`requires`* statement in your `module-info.java`. The example below requires the module `DataCollector`.
+
+   ```java
+   module DataViewer {
+       requires DataCollector;
+   }
+   ```
+
+8. Clean and run your `DataViewer` project.
 
 ### Exercise 3
 Public methods are not as public as they were. This means that only the API that is described in the `module-info.java` is exposed for clients outside the module. Let’s see how this works.
@@ -152,21 +166,22 @@ Public methods are not as public as they were. This means that only the API that
 We refactor the `DataCollector` module in such a way that the API implementation acts as a proxy for an internal collector.
 
 1. Create a new package internal in the `DataCollector`.
-2. Create a new service class in this internal package and move the dummy data functionality to this class.
-3. Reference in your `Collector` to this new internal collector.
-4. Run the Viewer to check if everything works.
-5. Try to reference to the internal data collector directly in your `Viewer`. If all is well, this should not work even if the internal collect method is public!
+2. Create a new `public` service class in this internal package and move the dummy data functionality to this class.
+3. Reference this new internal collector in your `Collector`.
+4. Clean and build the `DataCollector` project.
+5. Run the `DataViewer` to check if everything works.
+6. Try to reference the internal data collector directly in your `Viewer` implementation. If all is well, this should not work even if the internal collect method is public!
 
 ### Exercise 4
 At this moment, the `Viewer` references directly with the `Collector`. Sometimes you would like to loosen the coupling or switch between `Collector` implementations. Typically, you introduce a service interface class that represents the API and a service provider class that provides the interface implementation. 
 
-The decoupling of service interfaces and service providers proofed to be powerful in large software systems and is long supported in Java via the `ServiceLocator` class.
+The decoupling of service interfaces and service providers proved to be powerful in large software systems and is long supported in Java via the `ServiceLocator` class.
 Today, the `ServiceLocator` scans artifacts for META-INF/services resource entries in order to wire the interface to the provider. Java 9 allows you to use the `modele-info.java` to declare the interfaces and providers instead of the META-INF/services file.
 
-The `Collector` is in our case the service provider. We need to define a service interface and for the sake of simplicity we will define it in the `DataCollector` module as well. The `Viewer` needs to reference to the new service interface and will have no direct knowledge of the `Collector`.
+The `Collector` is in our case the service provider. We need to define a service interface and for the sake of simplicity we will define it in the `DataCollector` module as well. The `Viewer` needs to reference the new service interface and will have no direct knowledge of the `Collector`.
 
 1. Remove all dependencies under `Libaries` and `module-info.java` in both projects.
-2. Create an interface class `Collectable` in the `DataCollector` module in a separate api package.
+2. Create an interface class `Collectable` in the `DataCollector` module in a separate api package. Have `Collector` implement this interface.
 3. We need to change the implementation of the `Viewer` that is uses a provided implementation of `Collectable`. This is done via the `ServiceLoader` class. Here is an example implementation.
 
    ```java
@@ -186,31 +201,31 @@ The `Collector` is in our case the service provider. We need to define a service
         Collectable dataProvider = availableServices.next();
         dataProvider.collect().forEach(data -> out.println(data));
     }
-```
+   ```
 
-4. We need to expose this new interface outside the module. This is done via the *exports* statement as in the previous exercises. We also need to declare its actual implementation for the `ServiceLocator`. This is done via a *provides [service interface] with [service provider]* statement. Here is an example implementation of such a `module-info.java`.
+4. We need to expose this new interface outside the module. This is done via the *`exports`* statement as in the previous exercises. We also need to declare its actual implementation for the `ServiceLocator`. This is done via a *`provides [service interface] with [service provider]`* statement. Here is an example implementation of such a `module-info.java`.
 
    ```java
-module DataCollector {
-    exports org.nljug.jcp.hackathlon.java9.api;
-    provides org.nljug.jcp.hackathlon.java9.api.Collectable with
- org.nljug.jcp.hackathlon.java9.collector.Collector;
-}
-```
+   module DataCollector {
+       exports org.nljug.jcp.java9.api;
+       provides org.nljug.jcp.java9.api.Collectable
+           with org.nljug.jcp.java9.collector.Collector;
+   }
+   ```
 
 5. The next step is to declare the requirement and use of this interface in the client module. The `DataViewer` module is the client module in our example. Here is an example of such declaration in the `module-info.java`.
 
    ```java
-module DataViewer {
-    requires DataCollector;
-    uses org.nljug.jcp.hackathlon.java9.api.Collectable;
-}
-```
+   module DataViewer {
+       requires DataCollector;
+       uses org.nljug.jcp.hackathlon.java9.api.Collectable;
+   }
+   ```
 
-6. Wire the projects correctly in Netbeans under Properties | Libraries, clean the projects and run the `Viewer` to check if the program works again as expected. 
-7. Now, create a new module that implements the Collectable interface as well with a different set of data. 
+6. Wire the projects correctly in Netbeans under `Properties | Libraries`, clean the projects and run the `Viewer` to check if the program works again as expected. 
+7. Now, create a new module that implements the `Collectable` interface as well with a different set of data. 
 	Tip: Mind the package names.
-8. Change the `Viewer` in such a way that it presents the data from both providers.
+8. Change the `Viewer` in such a way that it presents the data from both providers. Note that no changes in the `module-info.java` or project properties are required!
 
 ## References
 - [http://openjdk.java.net/projects/jdk9/](http://openjdk.java.net/projects/jdk9/)
